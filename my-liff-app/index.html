@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>สั่งอาหาร - ร้านเลื่องอร่อย</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Kanit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-28">
+
+    <!-- Header หน้าลูกค้า -->
+    <header class="bg-white shadow-sm sticky top-0 z-30">
+        <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-violet-700">ร้านเลื่องอร่อย 🍽️</h1>
+                <p class="text-xs text-emerald-500 font-medium"><i class="fa-solid fa-circle text-[8px] animate-pulse"></i> เปิดรับออเดอร์</p>
+            </div>
+            <div id="userProfile" class="flex items-center gap-2">
+                <span id="userName" class="text-xs font-medium text-slate-600">กำลังโหลด...</span>
+                <img id="userImg" src="https://placehold.co/40x40?text=User" class="w-8 h-8 rounded-full border border-violet-200">
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-4 pt-4">
+        <!-- แบนเนอร์ -->
+        <div class="bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-2xl p-4 text-white mb-6 shadow-md">
+            <h2 class="font-bold text-lg mb-1">สั่งอาหารง่ายๆ ผ่านมือถือคุณ</h2>
+            <p class="text-xs opacity-90">เลือกตัวเลือกพิเศษตามที่คุณชอบ ระบบจะส่งบิลเข้า LINE ของคุณทันทีกเมื่อเสร็จสิ้น</p>
+        </div>
+
+        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-utensils text-violet-600"></i> รายการเมนูทั้งหมด
+        </h3>
+
+        <!-- ตัวโหลดเมนู -->
+        <div id="loadingMenu" class="text-center py-10">
+            <div class="animate-spin rounded-full h-8 w-8 border-4 border-violet-500 border-t-transparent mx-auto mb-3"></div>
+            <p class="text-sm text-slate-400">กำลังโหลดเมนูอาหารสดใหม่...</p>
+        </div>
+
+        <!-- รายการอาหาร -->
+        <div id="menuContainer" class="space-y-4 hidden"></div>
+    </main>
+
+    <!-- Modal ตัวเลือกท็อปปิ้ง -->
+    <div id="optionModal" class="fixed inset-0 bg-black/60 z-40 hidden flex items-end transition-opacity">
+        <div class="bg-white w-full max-w-md mx-auto rounded-t-3xl max-h-[85vh] flex flex-col transform transition-transform translate-y-full" id="modalContent">
+            
+            <div class="p-4 border-b flex justify-between items-center sticky top-0 bg-white rounded-t-3xl z-10">
+                <h3 id="modalFoodName" class="font-bold text-lg truncate pr-4">ชื่อเมนู</h3>
+                <button onclick="closeModal()" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-4 overflow-y-auto space-y-5 pb-24">
+                <!-- ความเผ็ด -->
+                <div id="blockSpicy" class="hidden">
+                    <p class="font-bold mb-2 text-sm"><i class="fa-solid fa-pepper-hot text-red-500 mr-1"></i> ระดับความเผ็ด</p>
+                    <div class="grid grid-cols-3 gap-2 text-sm">
+                        <label class="cursor-pointer"><input type="radio" name="mSpicy" value="ไม่เผ็ด" class="peer sr-only"><div class="py-2 text-center rounded-xl border peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 font-medium">ไม่เผ็ด</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="mSpicy" value="เผ็ดน้อย" class="peer sr-only"><div class="py-2 text-center rounded-xl border peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 font-medium">เผ็ดน้อย</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="mSpicy" value="เผ็ดปกติ" checked class="peer sr-only"><div class="py-2 text-center rounded-xl border peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 font-medium">เผ็ดปกติ</div></label>
+                    </div>
+                </div>
+
+                <!-- วิธีเสิร์ฟ -->
+                <div id="blockRice" class="hidden">
+                    <p class="font-bold mb-2 text-sm"><i class="fa-solid fa-bowl-rice text-amber-600 mr-1"></i> วิธีเสิร์ฟ</p>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <label class="cursor-pointer"><input type="radio" name="mRice" value="ราดข้าว" checked class="peer sr-only"><div class="py-2 text-center rounded-xl border peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 font-medium">ราดข้าว</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="mRice" value="เป็นกับข้าว" class="peer sr-only"><div class="py-2 text-center rounded-xl border peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 font-medium">เป็นกับข้าว (+20฿)</div></label>
+                    </div>
+                </div>
+
+                <!-- ขนาด -->
+                <div id="blockSpecial" class="hidden">
+                    <p class="font-bold mb-2 text-sm">ขนาด</p>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <label class="cursor-pointer"><input type="radio" name="mSize" value="ธรรมดา" checked class="peer sr-only"><div class="py-2 text-center rounded-xl border peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 font-medium">ธรรมดา</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="mSize" value="พิเศษ" class="peer sr-only"><div class="py-2 text-center rounded-xl border peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 font-medium">พิเศษ (+10฿)</div></label>
+                    </div>
+                </div>
+
+                <!-- ไข่ดาว -->
+                <div id="blockEgg" class="hidden">
+                    <p class="font-bold mb-2 text-sm"><i class="fa-solid fa-egg text-yellow-500 mr-1"></i> เพิ่มไข่ดาวหรือไม่</p>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <label class="cursor-pointer"><input type="radio" name="mEgg" value="ไม่รับไข่" checked class="peer sr-only"><div class="py-2 text-center rounded-xl border peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 font-medium">ไม่รับ</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="mEgg" value="ไข่ดาว" class="peer sr-only"><div class="py-2 text-center rounded-xl border peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 font-medium">ไข่ดาว (+10฿)</div></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t bg-white sticky bottom-0 w-full rounded-b-3xl">
+                <button onclick="confirmAddCart()" class="w-full bg-violet-600 text-white font-bold py-3.5 rounded-xl shadow-lg">
+                    เพิ่มลงตะกร้า
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ยืนยันคำสั่งซื้อ -->
+    <div id="checkoutModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4">
+            <h2 class="font-bold text-lg text-center border-b pb-3">สรุปคำสั่งซื้อของคุณ</h2>
+            
+            <div id="checkoutItems" class="max-h-40 overflow-y-auto space-y-2 text-sm"></div>
+            
+            <div class="flex justify-between font-bold text-lg pt-2 border-t text-violet-700">
+                <span>ยอดรวม</span>
+                <span id="checkoutTotal">฿0.00</span>
+            </div>
+
+            <div class="space-y-3 pt-2">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">ระบุเบอร์โต๊ะ / ชื่อลูกค้า <span class="text-red-500">*</span></label>
+                    <input type="text" id="customerTable" placeholder="เช่น โต๊ะ 3 หรือ ชื่อของคุณ" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-violet-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">วิธีชำระเงิน</label>
+                    <select id="paymentMethod" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-violet-500 bg-white">
+                        <option value="สแกนจ่าย QR (PromptPay)">สแกนจ่ายคิวอาร์ (พร้อมเพย์)</option>
+                        <option value="เงินสด">เงินสด (จ่ายที่เคาน์เตอร์)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeCheckout()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl text-sm">แก้ไข</button>
+                <button onclick="submitOrder()" id="btnSubmitOrder" class="flex-1 bg-violet-600 text-white font-bold py-3 rounded-xl text-sm">
+                    ยืนยันสั่งอาหาร
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ตะกร้าลอย -->
+    <div id="floatingCart" class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-3 rounded-2xl shadow-2xl flex justify-between items-center z-20 transition-transform transform translate-y-24 opacity-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-violet-600 w-10 h-10 rounded-full flex justify-center items-center font-bold text-sm" id="cartCountBadge">0</div>
+            <div>
+                <p class="text-[10px] text-slate-400">ราคารวม</p>
+                <p class="font-bold text-lg leading-none" id="cartTotalText">฿0.00</p>
+            </div>
+        </div>
+        <button onclick="openCheckout()" class="bg-white text-slate-900 px-5 py-2 rounded-xl text-sm font-bold shadow-sm">
+            ดูตะกร้า <i class="fa-solid fa-chevron-right text-xs ml-1"></i>
+        </button>
+    </div>
+
+    <!-- 💡 โหลด LINE LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        // ⚠️ สำคัญ: ใส่ข้อมูลลิงก์เว็บแอป และรหัส LIFF ID ของคุณ
+        const WEB_APP_API = "https://script.google.com/macros/s/AKfycbwhuvAz6JuL7ubzxq1dhbtVOV6JG239ivcbwAlijpuBUfJ1EStR3V7tpXJBR6LcLsXgug/exec";
+        const LIFF_ID = "วาง_LIFF_ID_ตัวใหม่ของคุณตรงนี้";
+
+        let rawMenu = [];
+        let currentCart = [];
+        let activeFood = null;
+        let lineUserId = "";
+
+        async function initializeLiff() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    lineUserId = profile.userId;
+                    document.getElementById('userName').innerText = profile.displayName;
+                    document.getElementById('userImg').src = profile.pictureUrl || 'https://placehold.co/40x40?text=User';
+                    document.getElementById('customerTable').value = profile.displayName; // ใส่ชื่อเล่นในช่องให้ทันที
+                } else {
+                    liff.login();
+                }
+            } catch (err) {
+                console.error("LIFF Init Failed", err);
+                document.getElementById('userName').innerText = "ผู้ใช้งานทั่วไป";
+            }
+        }
+
+        async function initCustomerApp() {
+            try {
+                const res = await fetch(WEB_APP_API);
+                rawMenu = await res.json();
+                document.getElementById('loadingMenu').classList.add('hidden');
+                document.getElementById('menuContainer').classList.remove('hidden');
+                renderMenu();
+            } catch (err) {
+                document.getElementById('loadingMenu').innerHTML = '<p class="text-red-500">ดาวน์โหลดเมนูไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</p>';
+            }
+        }
+
+        function renderMenu() {
+            const container = document.getElementById('menuContainer');
+            container.innerHTML = rawMenu.map((item, index) => `
+                <div class="bg-white rounded-2xl p-3 flex gap-3 shadow-sm border border-slate-100" onclick="openFoodModal(${index})">
+                    <img src="${item.Image || 'https://placehold.co/100x100?text=Food'}" class="w-24 h-24 rounded-xl object-cover bg-slate-50 shrink-0">
+                    <div class="flex-1 py-1 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm line-clamp-2">${item.Name}</h4>
+                            <p class="text-xs text-slate-400 mt-1 line-clamp-1">${item.Category || ''}</p>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <span class="text-violet-600 font-bold text-base">฿${parseFloat(item.Price).toFixed(0)}</span>
+                            <div class="w-7 h-7 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-plus"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openFoodModal(index) {
+            activeFood = rawMenu[index];
+            document.getElementById('modalFoodName').innerText = activeFood.Name;
+
+            document.getElementById('blockSpicy').style.display = (activeFood.NeedSpicy === true || activeFood.NeedSpicy === "TRUE") ? 'block' : 'none';
+            document.getElementById('blockRice').style.display = (activeFood.CanWithRice === true || activeFood.CanWithRice === "TRUE") ? 'block' : 'none';
+            document.getElementById('blockSpecial').style.display = (activeFood.CanSpecial === true || activeFood.CanSpecial === "TRUE") ? 'block' : 'none';
+            document.getElementById('blockEgg').style.display = (activeFood.NeedEgg === true || activeFood.NeedEgg === "TRUE") ? 'block' : 'none';
+
+            document.querySelector('input[name="mSpicy"][value="เผ็ดปกติ"]').checked = true;
+            document.querySelector('input[name="mRice"][value="ราดข้าว"]').checked = true;
+            document.querySelector('input[name="mSize"][value="ธรรมดา"]').checked = true;
+            document.querySelector('input[name="mEgg"][value="ไม่รับไข่"]').checked = true;
+
+            const modal = document.getElementById('optionModal');
+            const content = document.getElementById('modalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => content.classList.remove('translate-y-full'), 50);
+        }
+
+        function closeModal() {
+            const content = document.getElementById('modalContent');
+            content.classList.add('translate-y-full');
+            setTimeout(() => document.getElementById('optionModal').classList.add('hidden'), 300);
+        }
+
+        function confirmAddCart() {
+            let basePrice = parseFloat(activeFood.Price);
+            let optTexts = [];
+
+            if(document.getElementById('blockSpicy').style.display === 'block') optTexts.push(document.querySelector('input[name="mSpicy"]:checked').value);
+            if(document.getElementById('blockRice').style.display === 'block') {
+                let v = document.querySelector('input[name="mRice"]:checked').value;
+                optTexts.push(v);
+                if(v === "เป็นกับข้าว") basePrice += 20;
+            }
+            if(document.getElementById('blockSpecial').style.display === 'block') {
+                let v = document.querySelector('input[name="mSize"]:checked').value;
+                optTexts.push(v);
+                if(v === "พิเศษ") basePrice += 10;
+            }
+            if(document.getElementById('blockEgg').style.display === 'block') {
+                let v = document.querySelector('input[name="mEgg"]:checked').value;
+                if(v !== "ไม่รับไข่") { optTexts.push(v); basePrice += 10; }
+            }
+
+            const optSummary = optTexts.length > 0 ? optTexts.join(", ") : "ปกติ";
+            const uKey = activeFood.Name + "|" + optSummary;
+            
+            const existing = currentCart.find(c => c.key === uKey);
+            if(existing) {
+                existing.qty += 1;
+                existing.subtotal = existing.qty * existing.singlePrice;
+            } else {
+                currentCart.push({ key: uKey, name: activeFood.Name, options: optSummary, singlePrice: basePrice, qty: 1, subtotal: basePrice });
+            }
+
+            closeModal();
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const cartBar = document.getElementById('floatingCart');
+            if(currentCart.length === 0) {
+                cartBar.classList.add('translate-y-24', 'opacity-0');
+                return;
+            }
+
+            cartBar.classList.remove('translate-y-24', 'opacity-0');
+            const totalQty = currentCart.reduce((s, i) => s + i.qty, 0);
+            const totalAmt = currentCart.reduce((s, i) => s + i.subtotal, 0);
+
+            document.getElementById('cartCountBadge').innerText = totalQty;
+            document.getElementById('cartTotalText').innerText = `฿${totalAmt.toFixed(0)}`;
+        }
+
+        function openCheckout() {
+            const cList = document.getElementById('checkoutItems');
+            cList.innerHTML = currentCart.map(item => `
+                <div class="flex justify-between items-start border-b border-slate-50 pb-2">
+                    <div class="pr-2">
+                        <span class="font-bold text-slate-700">${item.qty}x ${item.name}</span>
+                        <p class="text-[10px] text-slate-400">${item.options}</p>
+                    </div>
+                    <span class="font-bold text-slate-800">฿${item.subtotal}</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('checkoutTotal').innerText = document.getElementById('cartTotalText').innerText;
+            document.getElementById('checkoutModal').classList.remove('hidden');
+        }
+
+        function closeCheckout() {
+            document.getElementById('checkoutModal').classList.add('hidden');
+        }
+
+        async function submitOrder() {
+            const tableNo = document.getElementById('customerTable').value.trim();
+            if(!tableNo) { alert("กรุณาระบุเลขโต๊ะหรือชื่อผู้สั่งด้วยครับ"); return; }
+
+            const btn = document.getElementById('btnSubmitOrder');
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> กำลังส่งออเดอร์...';
+            btn.disabled = true;
+
+            const totalAmt = currentCart.reduce((s, i) => s + i.subtotal, 0);
+            const payload = {
+                items: currentCart,
+                total: totalAmt,
+                paymentMethod: document.getElementById('paymentMethod').value,
+                note: "โต๊ะ/ลูกค้า: " + tableNo,
+                userId: lineUserId // ส่ง UID ไปให้หลังบ้านสั่ง Push Flex Message เข้าแชท
+            };
+
+            try {
+                const res = await fetch(WEB_APP_API, { method: 'POST', body: JSON.stringify(payload) });
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    alert('🎉 ส่งออเดอร์สำเร็จ!\nตรวจสอบใบสรุปราคาสวยๆ ได้ในแชท LINE ร้านค้าได้ทันทีครับ');
+                    currentCart = [];
+                    updateCartUI();
+                    closeCheckout();
+                    liff.closeWindow(); // ปิดหน้าต่าง LIFF อัตโนมัติเมื่อสั่งเสร็จ
+                }
+            } catch(e) {
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+            } finally {
+                btn.innerHTML = 'ยืนยันสั่งอาหาร';
+                btn.disabled = false;
+            }
+        }
+
+        window.onload = async () => {
+            await initializeLiff();
+            initCustomerApp();
+        };
+    </script>
+</body>
+</html>
